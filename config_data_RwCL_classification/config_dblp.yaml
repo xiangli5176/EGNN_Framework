@@ -1,0 +1,38 @@
+name: 'dblp'                # Name of data
+n_clusters : 4              #  number of clusters
+feat_dim : 334 
+seed:   39788
+
+lr: 1e-3
+
+enc_arch : "256-256" 
+mlp_arch : "256-256" 
+# mlp_arch : "" 
+
+num_proj_hidden: 256
+tau: 2.0
+
+# drop_edge_rate_1: 0.0
+# drop_edge_rate_2: 0.0
+drop_feature_rate_1: 0.2
+# drop_feature_rate_2: 0.8
+view_num : 4    # number of views generated
+
+num_epochs: 300
+weight_decay: 0.05
+
+
+batch_size_train : 512             # batch size for mini-batch training   
+eval_display : 20                    # visual : period
+loss_batch_size : 0            # if 0, then do a full-batch training
+
+
+### ==================  GBP Settings : 
+
+alpha: 0.6                  # decay factor
+rmax: 1e-4                  # threshold.
+rrz: 0.5                    # r.
+
+### =========GBP GNN layer settings:
+batchnorm : False
+dropout_rate : 0.0

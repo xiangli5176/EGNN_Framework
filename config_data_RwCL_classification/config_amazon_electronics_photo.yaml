@@ -1,0 +1,47 @@
+data_name: 'amazon_electronics_photo'           # Name of data
+n_class : 8              #  number of clusters
+feat_dim : 745 
+seed:   39788
+
+lr: 8e-5
+
+enc_arch : "512-512" 
+# mlp_arch : "256-512" 
+mlp_arch : "" 
+
+num_proj_hidden: 256
+tau: 2.0
+
+# drop_edge_rate_1: 0.2
+# drop_edge_rate_2: 0.4
+drop_feature_rate_1: 0.1
+# drop_feature_rate_2: 0.1
+view_num : 4    # number of views generated
+
+num_epochs: 500
+weight_decay: 0.1
+
+
+batch_size_train : 256             # batch size for mini-batch training   
+eval_display : 20
+loss_batch_size : 0              # if 0, then do a full-batch when calculate loss between tweaked features
+
+
+### ==================  GBP Settings : 
+
+alpha: 0.03                  # decay factor
+rmax: 1e-6                  # threshold.
+rrz: 0.5                    # r.
+
+### =========GBP GNN layer settings:
+batchnorm : False
+dropout_rate : 0.0
+
+### ================  below are specific to the classfication regressoin module:
+reg_lr : 0.2      # learning rate for linear regression
+reg_num_epochs : 100     # number of epochs for linear regression for classification
+reg_weight_decay : 1e-5
+reg_dropout_rate : 0
+
+reg_eval_step : 1
+reg_early_stop : False

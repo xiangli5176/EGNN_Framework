@@ -1,0 +1,38 @@
+data_name: 'cora'                # Name of data
+n_clusters : 7              #  number of clusters
+feat_dim : 1433 
+seed:   39788
+
+lr: 1e-4
+
+enc_arch : "256-128" 
+mlp_arch : "256-"   # if a single value, remember to take this "-", otherwise will be treated as int instead of str
+# mlp_arch : "" 
+
+num_proj_hidden: 512
+tau: 1.0
+
+# drop_edge_rate_1: 0.2
+# drop_edge_rate_2: 0.4
+
+drop_feature_rate_1: 0.08    # 0.2 is optimal for single drop_out but multi-view
+# drop_feature_rate_2: 0.8
+view_num : 3    # number of views generated   2 will be optimal for single dropout
+
+num_epochs: 300
+weight_decay: 0.02
+
+batch_size_train : 512             # batch size for mini-batch training   
+eval_display : 10
+loss_batch_size : 0              # if 0, then do a full-batch when calculate loss between tweaked features
+
+
+### ==================  GBP Settings : 
+
+alpha: 0.1                  # decay factor
+rmax: 1e-6                  # threshold.
+rrz: 0.4                    # r.
+
+### =========GBP GNN layer settings:
+batchnorm : False
+dropout_rate : 0.1

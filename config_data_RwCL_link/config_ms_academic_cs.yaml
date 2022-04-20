@@ -1,0 +1,38 @@
+data_name: 'ms_academic_cs'           # Name of data
+n_clusters : 15              #  number of clusters
+feat_dim : 6805 
+seed:   39788
+
+lr: 1e-5
+
+enc_arch : "256-512" 
+# mlp_arch : "128-512" 
+mlp_arch : "" 
+
+num_proj_hidden: 128
+tau: 1.2
+
+# drop_edge_rate_1: 0.2
+# drop_edge_rate_2: 0.4
+drop_feature_rate_1: 0.4    # single droprate : 0.4 optimal repeated with 4
+# drop_feature_rate_2: 0.5
+view_num : 5    # number of views generated
+
+num_epochs: 400
+weight_decay: 0.05
+
+
+batch_size_train : 512             # batch size for mini-batch training   
+eval_display : 20
+loss_batch_size : 0              # if 0, then do a full-batch when calculate loss between tweaked features
+
+
+### ==================  GBP Settings : 
+
+alpha: 0.1                  # decay factor
+rmax: 1e-5                  # threshold.
+rrz: 0.4                    # r.
+
+### =========GBP GNN layer settings:
+batchnorm : False
+dropout_rate : 0.0

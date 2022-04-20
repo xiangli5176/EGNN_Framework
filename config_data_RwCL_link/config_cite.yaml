@@ -1,0 +1,37 @@
+data_name: 'cite'                # Name of data
+n_clusters : 6              #  number of clusters
+feat_dim : 3703
+seed:   39788
+
+lr: 1e-4
+
+enc_arch : "256-512" 
+# mlp_arch : "512-512" 
+mlp_arch : "" 
+
+# num_proj_hidden: 512
+tau: 4
+
+# drop_edge_rate_1: 0.2
+# drop_edge_rate_2: 0.4
+drop_feature_rate_1: 0.2
+# drop_feature_rate_2: 0.8
+view_num : 4    # number of views generated   for a single dropout rate: 6 times is enough
+
+num_epochs: 400
+weight_decay: 0.05
+
+
+batch_size_train : 512             # batch size for mini-batch training   
+eval_display : 20
+loss_batch_size : 0              # if 0, then do a full-batch when calculate loss between tweaked features
+
+### ==================  GBP Settings : 
+
+alpha: 0.4                  # decay factor
+rmax: 1e-5                  # threshold.
+rrz: 0.4                    # r.
+
+### =========GBP GNN layer settings:
+batchnorm : False    # no effects
+dropout_rate : 0.0   # no effects

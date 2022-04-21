@@ -13,7 +13,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 
 from ...evaluation import get_roc_score
-from ...dataloader import LoadDataset_train
+from ...dataloader import LoadDataset_feat
 from ...training_algo.contrastive import train_step_multi_view
 
 
@@ -42,7 +42,7 @@ def train(model_train, config, inputs,
     metric_summary = defaultdict(dict)
 
     optimizer = torch.optim.AdamW(model_train.parameters(), lr=config['lr'], weight_decay=config['weight_decay'])
-    train_loader = DataLoader(LoadDataset_train(feature, device = device), batch_size=config["batch_size_train"], shuffle=True)
+    train_loader = DataLoader(LoadDataset_feat(feature, device = device), batch_size=config["batch_size_train"], shuffle=True)
 
     if config["view_num"] == 1:
         cand_p = [config['drop_feature_rate_1']] * config["view_num"]

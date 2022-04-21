@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .GNN import GBP_GNNLayer, Encoder, DNN
+from .GNN_basic import GBP_GNNLayer, Encoder, DNN
 
 
 class LogReg(nn.Module):

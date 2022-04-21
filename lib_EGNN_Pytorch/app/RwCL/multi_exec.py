@@ -6,7 +6,7 @@ from . import basic_exec_cluster, basic_exec_link, basic_exec_node_classificatio
 from ... import utils
 
 
-def execute_train_investigate(data_name, model, input_data, workdir, config, 
+def run_train_cluster(data_name, model, input_data, workdir, config, 
                               tune_param_name, tune_val_label, tune_val, trainer_id = 0, 
                               device = "cpu"):
     """
@@ -50,7 +50,7 @@ def execute_train_investigate(data_name, model, input_data, workdir, config,
     utils.save_info_pickle(data_path = train_profile_path, target_data = {"time_training" : time_training})        
     
 
-def execute_test_investigate(data_name, new_model, input_data, workdir, config, 
+def run_test_cluster(data_name, new_model, input_data, workdir, config, 
                              tune_param_name, tune_val_label, tune_val, trainer_id = 0):
     """
         Train wrapper for tuning hyper-parameters during training
@@ -89,7 +89,7 @@ def execute_test_investigate(data_name, new_model, input_data, workdir, config,
 
 #### ============================ For link prediction  ========================
 
-def execute_train_link(data_name, model, input_data, workdir, config, 
+def run_train_link(data_name, model, input_data, workdir, config, 
                               tune_param_name, tune_val_label, tune_val, trainer_id = 0, device = "cpu"):
     """
         Train wrapper for tuning hyper-parameters during training
@@ -131,7 +131,7 @@ def execute_train_link(data_name, model, input_data, workdir, config,
     utils.save_info_pickle(data_path = train_profile_path, target_data = {"time_training" : time_training})  
     
 
-def execute_test_link(data_name, new_model, input_data, workdir, config, 
+def run_test_link(data_name, new_model, input_data, workdir, config, 
                              tune_param_name, tune_val_label, tune_val, trainer_id = 0):
     """
         Train wrapper for tuning hyper-parameters during training
@@ -169,7 +169,7 @@ def execute_test_link(data_name, new_model, input_data, workdir, config,
 
 #### ============================ For classification prediction  ========================
 
-def execute_train_classification(data_name, model_emb, input_data, workdir, config, 
+def run_train_classification(data_name, model_emb, input_data, workdir, config, 
                               tune_param_name, tune_val_label, tune_val, trainer_id = 0, device = "cpu"):
     """
         Train wrapper for tuning hyper-parameters during training
@@ -211,7 +211,7 @@ def execute_train_classification(data_name, model_emb, input_data, workdir, conf
     utils.save_info_pickle(data_path = train_profile_path, target_data = {"time_training" : time_training})  
     
 
-def execute_test_classification(data_name, input_data, workdir, config, 
+def run_test_classification(data_name, input_data, workdir, config, 
                              tune_param_name, tune_val_label, tune_val, trainer_id = 0, device = "cpu"):
     """
         Train wrapper for tuning hyper-parameters during training

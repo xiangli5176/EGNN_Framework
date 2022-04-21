@@ -6,7 +6,7 @@ import numpy as np
 
 import torch
 
-from ..model import drop_feature
+from ..models.model_app import drop_feature
 
 
 

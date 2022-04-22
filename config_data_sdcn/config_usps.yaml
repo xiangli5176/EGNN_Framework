@@ -1,0 +1,34 @@
+name: 'usps'                # Name of data
+seed: 20159                 # random seed
+
+### ================== GNN layer settings:
+
+lr: 1e-3                    # Number of training nodes divided by number of classes
+k: 3                        # to use the KNN generate an artifical graph
+n_clusters : 10              #  number of clusters
+n_z :  10                   # Dropout rate for GNN representations
+n_input : 256               # number of nodes
+
+bn_momentum: 0.1            # batch normalization momentum
+weight_decay: 0.125         # Weight decay used for training the MLP for the Adam optimizer
+n_epochs : 40              # Number of epochs
+
+### ==================  GBP Settings
+alpha: 0.1                  # decay factor
+rmax: 1e-5                  # threshold.
+rrz: 0.4                    # r.
+bias: "bn"                 # bias. "could be bn for batch normalization for GBP"
+
+### ================== normal settings, usually no need to change
+update_p : 1                 # how frequently to update target distribution: P
+eval_step: 10                # how many epochs do validation during training
+display_eval_step: 20       # how many epochs display validation during training through logging
+
+pretrain_lr : 1e-3           # learning rate during pretrain autoencoder
+pretrain_n_epochs : 30       # number of pretrain epochs
+pretrain_eval_step: 1        # compute the loss during pretrain
+
+early_stop : False                  # whether enable the early stop or not
+patience: 40               # patience, if early stop is enabled, decides how many steps to wait for a better metric value before dropping the training
+stop_standard : "modularity"        # if early_stop is true, use this as standard for an early stop. can be : "conductance", "modularity", "NMI", "f1_score"   all strings
+                                    # Notice: conductance (smaller the better, all the others : the larger the better

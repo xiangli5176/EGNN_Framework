@@ -29,12 +29,13 @@ def train(model_train, config, inputs,
                 y: numpy.array , golden label for classes
                 adj : pytorch sparse tensor
         checkpoint_file_path : keep snapshot of the model with the best pairwise f1 score for clustering
+    Returns:
+        tuple(dict): training statistics
     """
     loss_hist = {}
     f1_macro_hist = defaultdict(dict); f1_micro_hist = defaultdict(dict); acc_hist = defaultdict(dict)
     ari_hist = defaultdict(dict); nmi_hist = defaultdict(dict)
     conductance_hist = defaultdict(dict); modularity_hist = defaultdict(dict)
-    dmon_f1_score_hist = defaultdict(dict)
     
     def record_metric(label, pred, adj,
                         epoch, train_time, 
@@ -48,7 +49,6 @@ def train(model_train, config, inputs,
 
         conductance_hist[name][(train_time, epoch)] = metric["conductance"]
         modularity_hist[name][(train_time, epoch)] = metric["modularity"]
-        dmon_f1_score_hist[name][(train_time, epoch)] = metric["dmon_f1_score"]
 
         if display:
             logging.info(f"{name} distribtion: Epoch {epoch:4d} | " + ' | '.join(f"{key} : {val:.4f}" for key, val in metric.items()))
@@ -149,8 +149,11 @@ def train(model_train, config, inputs,
             header = ["best_epoch_num", epoch, train_time]
             wr.writerow(header)
     
-    return train_time, loss_hist, f1_micro_hist, f1_macro_hist, acc_hist, ari_hist, nmi_hist, \
-                conductance_hist, modularity_hist, dmon_f1_score_hist
+    metric_summary = {"loss_hist": loss_hist, "f1_micro_hist" : f1_micro_hist, "f1_macro_hist" : f1_macro_hist,
+                     "acc_hist" : acc_hist, "ari_hist" : ari_hist, "nmi_hist" : nmi_hist,
+                     "conductance_hist" : conductance_hist, "modularity_hist" : modularity_hist }
+    
+    return train_time, metric_summary
 
 
 def test(model_template, config, inputs, 

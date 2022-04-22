@@ -3,12 +3,14 @@
 
 class GNN_framework():
     
-    def __init__(self, config):
+    def __init__(self, config, **kwargs):
         self.config = config
         
     def train_cluster(self, model_train, config, inputs, 
         device = "cpu", checkpoint_file_path = None, 
-        metric_list = ["f1_micro", "f1_macro", "Accuracy", "NMI", "ARI", "conductance", "modularity"]):
+        metric_list = ["f1_micro", "f1_macro", "Accuracy", "NMI", "ARI", "conductance", "modularity"], 
+        **kwargs
+        ):
         """  Main training process for clustering
 
         Args:
@@ -25,7 +27,7 @@ class GNN_framework():
         pass
     
     def test_cluster(self, model_val, config, inputs, 
-        device = "cpu", checkpoint_file_path = None):
+        device = "cpu", checkpoint_file_path = None, **kwargs):
         """
         Evaluate the trained model on the test data
         Args:
@@ -42,6 +44,7 @@ class GNN_framework():
     def train_link(model_train, config, inputs, 
         device = "cpu", checkpoint_file_path = None, 
         metric_list = ["auc_score", "ap_score"],
+        **kwargs
         ):
         """  Main training process for clustering
 
@@ -59,7 +62,9 @@ class GNN_framework():
     
     
     def test_link(self, model_val, config, inputs, 
-        device = "cpu", checkpoint_file_path = None):
+        device = "cpu", checkpoint_file_path = None,
+        **kwargs
+        ):
         """
         Evaluate the trained model on the test data
         Args:
@@ -73,7 +78,10 @@ class GNN_framework():
         pass
     
     
-    def train_node_classification(model_emb, config, inputs, device = "cpu", checkpoint_file_path = None):
+    def train_node_classification(model_emb, config, inputs, 
+                            device = "cpu", checkpoint_file_path = None,
+                            **kwargs
+                            ):
         """ 
         Main procedure to perform train process: 
             1) pre-computation/training for embedding
@@ -88,7 +96,9 @@ class GNN_framework():
         pass
     
     def test_node_classification(config, inputs, 
-                    device = "cpu", checkpoint_file_path = None):
+                    device = "cpu", checkpoint_file_path = None, 
+                    **kwargs
+                    ):
         """ 
         Main procedure to perform train process: 
             1) pre-computation/training for embedding

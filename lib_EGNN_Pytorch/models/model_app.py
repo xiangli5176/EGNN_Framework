@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.parameter import Parameter
 
-from .GNN_basic import GBP_GNNLayer, Encoder, DNN
+from .GNN_basic import GBP_GNNLayer, Encoder, DNN, Dense, AE
 
 
 class LogReg(nn.Module):
@@ -24,11 +25,11 @@ class LogReg(nn.Module):
         return ret
 
 
-
+### ============================== RwCL model =====================
 class RwCL_Model(torch.nn.Module):
     def __init__(self, config):
         super(RwCL_Model, self).__init__()
-        enc_dims, mlp_dims, n_z = set_dims(config)
+        enc_dims, mlp_dims, n_z = set_dims_RwCL(config)
 
         self.encoder = Encoder(config, enc_dims, base_model = GBP_GNNLayer, activation_func = F.relu)
         self.mlp_arch = DNN(config, mlp_dims, base_model = GBP_GNNLayer, activation_func = F.elu) if mlp_dims else lambda x : x
@@ -99,7 +100,7 @@ def drop_feature(x, drop_prob):
 
 
 # auto-encoder
-def set_dims(config):
+def set_dims_RwCL(config):
     """
         dims_feat: Obtain the dimension of each embedding layer
         dims_weight:  Obtain the dimension of each weight
@@ -115,3 +116,64 @@ def set_dims(config):
         mlp_dims += [(mlp_arch[i], mlp_arch[i+1]) for i in range(len(mlp_arch)-1)]
 
     return enc_dims, mlp_dims, enc_arch[-1] 
+
+
+
+### ============================== RwSL model =====================
+
+class RwSL_Model(nn.Module):
+
+    def __init__(self, config, n_clusters, v = 1, pretrain_path = None):
+                
+        super(RwSL_Model, self).__init__()
+
+        # autoencoder for intra information
+        enc_dims, dec_dims, n_z = set_dims_RwSL(config)
+
+        self.ae = AE(enc_dims, dec_dims, config)
+        self.ae.load_state_dict(torch.load(pretrain_path, map_location='cpu')) # 
+
+        # GCN for inter information
+        self.GNN_layers = nn.ModuleList([GBP_GNNLayer(*dim, batchnorm=config["batchnorm"]) for dim in enc_dims] + [GBP_GNNLayer(n_z, n_clusters, batchnorm=config["batchnorm"])])
+        # cluster layer
+        self.cluster_layer = Parameter(torch.Tensor(n_clusters, n_z))
+        torch.nn.init.xavier_normal_(self.cluster_layer.data)
+
+        # degree
+        self.v = v
+        self.sigma = config["sigma"]
+        self.f_dropout = nn.Dropout(p = config["dropout_rate"])
+
+    def forward(self, x):
+        # DNN Module
+        x_bar, z, enc_tran = self.ae(x)
+        
+        # GCN Module
+        h = self.GNN_layers[0](x)
+        for i, GNN_layer in enumerate(self.GNN_layers[1:-1]):
+            h = self.f_dropout(h)
+            h = GNN_layer((1 - self.sigma) * h + self.sigma * enc_tran[i])
+
+        h = self.GNN_layers[-1]((1 - self.sigma) * h + self.sigma * z, active=False)
+
+        predict = F.softmax(h, dim=1)
+
+        # Dual Self-supervised Module
+        q = 1.0 / (1.0 + torch.sum(torch.pow(z.unsqueeze(1) - self.cluster_layer, 2), 2) / self.v)
+        q = q.pow((self.v + 1.0) / 2.0)
+        q = (q.t() / torch.sum(q, 1)).t()
+
+        return x_bar, q, predict, z
+    
+    
+def set_dims_RwSL(config):
+    """
+        dims_feat: Obtain the dimension of each embedding layer
+        dims_weight:  Obtain the dimension of each weight
+    """
+    arch = [int(val) for val in config["arch"].split('-')] 
+    enc_dims = [(config["n_input"], arch[0])]
+    enc_dims += [(arch[i], arch[i+1]) for i in range(len(arch)-1)]
+    dec_dims = [(right, left) for left, right in reversed(enc_dims)]
+
+    return enc_dims, dec_dims, arch[-1]    

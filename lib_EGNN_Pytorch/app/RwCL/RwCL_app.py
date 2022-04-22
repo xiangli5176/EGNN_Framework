@@ -51,7 +51,8 @@ class RwCL_framework(GNN_framework):
         
     def train_link(self, model_train, config, inputs, 
         device = "cpu", checkpoint_file_path = None, 
-        metric_list = ["f1_micro", "f1_macro", "Accuracy", "NMI", "ARI", "conductance", "modularity"]):
+        metric_list = ["auc_score", "ap_score"],
+        ):
         """  Main training process for clustering
 
         Args:
@@ -87,7 +88,7 @@ class RwCL_framework(GNN_framework):
                     device = device, checkpoint_file_path = checkpoint_file_path)
         
         
-    def train_node_classification(model_train, config, inputs, device = "cpu", checkpoint_file_path = None):
+    def train_node_classification(self, model_train, config, inputs, device = "cpu", checkpoint_file_path = None):
         """ 
         Main procedure to perform train process: 
             1) pre-computation/training for embedding
@@ -102,7 +103,7 @@ class RwCL_framework(GNN_framework):
         return basic_exec_node_classification.train(model_train, config, inputs, 
                     device = device, checkpoint_file_path = checkpoint_file_path)
     
-    def test_node_classification(config, inputs, 
+    def test_node_classification(self, config, inputs, 
                     device = "cpu", checkpoint_file_path = None):
         """ 
         Main procedure to perform train process: 

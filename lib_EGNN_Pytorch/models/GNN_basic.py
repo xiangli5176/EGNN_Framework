@@ -125,5 +125,32 @@ class DNN(torch.nn.Module):
 
         return x    
     
+### ====================== Auto-encoders  =====================
+class AE(nn.Module):
+    def __init__(self, enc_dims, dec_dims, config):
+        super(AE, self).__init__()
+        self.enc_layers = nn.ModuleList([Dense(*dim, batchnorm=config["batchnorm"]) for dim in enc_dims])
+        self.dec_layers = nn.ModuleList([Dense(*dim, batchnorm=config["batchnorm"]) for dim in dec_dims])
+
+    def forward(self, x):
+        """
+        return:
+            x_bar: is the decoded embedding
+            z : finally encoded embeddings
+            enc_emb[1:] : intermediate embeddings of the encoder
+        """
+        enc_emb = [x]
+        for enc_layer in self.enc_layers[:-1]:
+            enc_emb.append(F.relu(enc_layer(enc_emb[-1])))
+
+        z = self.enc_layers[-1](enc_emb[-1])
+
+        x_bar = z
+        for dec_layer in self.dec_layers[:-1]:
+            x_bar = F.relu( dec_layer(x_bar) )
+        x_bar = self.dec_layers[-1](x_bar)
+
+        return x_bar, z, enc_emb[1:]
+
     
 ### ====================== GCN models ============================    

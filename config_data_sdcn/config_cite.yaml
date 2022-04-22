@@ -1,0 +1,47 @@
+name: 'cite'                # Name of data
+seed: 20159                 # random seed
+
+### ================== GNN layer settings:
+
+lr: 1e-4                    # Number of training nodes divided by number of classes
+k: None                     # to use the KNN generate an artifical graph
+n_clusters : 6              #  number of clusters
+# n_z :  10                   # Dropout rate for GNN representations
+n_input : 3703              # number of nodes
+batch_size_update_p : 512    # update p distribution in batches
+
+arch : "512-1024-16"     # the architecture of AE and DNN (MLP), the last number is n_z
+golden_pre_epoch : 10
+golden_trainer  :  3     
+
+dropout_rate : 0.0
+bn_momentum: 0.1            # batch normalization momentum
+weight_decay: 0.01           # Weight decay used for training the MLP for the Adam optimizer
+batch_size_train : 256
+v : 1.0                     # students distribution degree of freedom, can be more than one if the data dimension is high
+a : 0.1                     # sdcn alpha coeff [0.05, 0.1]
+b : 0.01                    # sdcn beta coeff
+sigma : 0.5
+n_epochs : 120              # Number of epochs
+
+### ==================  GBP Settings
+alpha: 0.1                  # decay factor
+rmax: 1e-5                  # threshold.
+rrz: 0.4                    # r.
+bias: "bn"                 # bias. "could be bn for batch normalization for GBP"
+
+### ================== normal settings, usually no need to change
+update_p : 1                 # how frequently to update target distribution: P
+eval_step: 5                # how many epochs do validation during training
+display_eval_step: 20       # how many epochs display validation during training through logging
+
+batch_size_pre_train : 256
+pretrain_lr : 1e-4           # learning rate during pretrain autoencoder
+pretrain_n_epochs : 30       # number of pretrain epochs
+pretrain_weight_decay : 0.01  
+pretrain_eval_step: 5        # compute the loss during pretrain
+
+early_stop : False                  # whether enable the early stop or not
+patience: 40               # patience, if early stop is enabled, decides how many steps to wait for a better metric value before dropping the training
+stop_standard : "modularity"        # if early_stop is true, use this as standard for an early stop. can be : "conductance", "modularity", "NMI", "f1_score"   all strings
+                                    # Notice: conductance (smaller the better, all the others : the larger the better

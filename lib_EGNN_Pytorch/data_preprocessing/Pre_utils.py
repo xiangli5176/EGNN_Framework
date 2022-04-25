@@ -12,11 +12,8 @@ import sklearn.preprocessing as skp
 import torch
 from torch.utils.data import Dataset
 
-from .gbp_cython_lib.graph import Graph   # since Base(Graph), due to this inheritance, must load this Graph base class
-from .gbp_cython_lib.base import Base
 
-
-### =======================   General data preprocessing  ===========================
+### =======================   General data preprocessing for RwCL and RwSL ===========================
 def aug_normalized_adjacency(adj, aug_val = 1.0):
     """ Borrowed from SSGC
         Normalize the adjacency matrix by:
@@ -55,96 +52,6 @@ def row_normalize(mx):
     mx = r_mat_inv.dot(mx)
     return mx        
     
-
-### =================== Load the input data for Cython GBP  ==================
-def load_Cython_GBP_input_node(data_name, features, adj_full, adj_GBP_file_path = None, directed = False, redo_save = False):
-    """ Load the two inputs for cython gbp precomputation: features and adj_matrix_cython
-        adj_matrix_cython can be auto-saved for repeating usage in the future at the location: adj_GBP_file_path
-        The output element types are important!!! 
-    Args:
-        data_name (string): name of the dataset, all lowercase
-        features (np.array): node attributes
-        adj_full (sp.sparse.csr_matrix): adjacency matrix, with no self-loops, default to be undirected edges and symmetric 
-        adj_GBP_file_path (string, optional): file path to store the processed adjacency matrix for repeated usage
-        directed (bool, optional): whether or not the graph is directed or not. Defaults to False.
-        redo_save (bool, optional): whether or not we need to update the saved adj files. Defaults to False.
-
-    Returns:
-        features (np.array(np.float32)): features forced with a type for element np.float32
-        adj_matrix_cython (np.array(np.int64)): adjacency matrix, aimed to be compatible with cython precomputation code
-    """
-
-    if adj_GBP_file_path is not None and os.path.exists(adj_GBP_file_path):
-        if redo_save:
-            print(f"Regenerate the adj_GBP_file at : {adj_GBP_file_path}")
-            adj_matrix_cython = graphsave(adj_full, data_name.lower(), adj_GBP_file_path, need_save = False, directed = directed)
-            np.save(adj_GBP_file_path, adj_matrix_cython) 
-        else:
-            print(f"Loading the pre-existent adj_GBP_file at : {adj_GBP_file_path}")
-            adj_matrix_cython = np.load(adj_GBP_file_path)
-            # with np.load(open(adj_GBP_file_path, 'rb'), allow_pickle=True) as data_input:
-            #     adj_matrix_cython = data_input
-    else:
-        print(f"Produce a brand new adj_GBP_file at : {adj_GBP_file_path}")
-        os.makedirs(os.path.dirname(adj_GBP_file_path), exist_ok=True)
-        adj_matrix_cython = graphsave(adj_full, data_name.lower(), adj_GBP_file_path, need_save = False, directed = directed)
-        np.save(adj_GBP_file_path, adj_matrix_cython) 
-        
-    return np.ascontiguousarray(features, dtype = np.float32), adj_matrix_cython
-
-
-
-def load_Cython_GBP_input_link(data_name, features, adj_full, adj_GBP_file_path = None, directed = False, redo_save = False, 
-                                val_frac = 0.05, test_frac = 0.1):
-    """Load the two inputs for cython gbp precomputation: features and adj_matrix_cython
-        adj_matrix_cython can be auto-saved for repeating usage in the future at the location: adj_GBP_file_path
-        The output element types are important!!! 
-    Args:
-        data_name (string): name of the dataset, all lowercase
-        features (np.array): node attributes
-        adj_full (sp.sparse.csr_matrix): adjacency matrix, with no self-loops, default to be undirected edges and symmetric 
-        adj_GBP_file_path (string, optional): file path to store the processed adjacency matrix for repeated usage
-        directed (bool, optional): whether or not the graph is directed or not. Defaults to False.
-        redo_save (bool, optional): whether or not we need to update the saved adj files. Defaults to False.
-
-    Returns:
-        features (np.array(np.float32)): features forced with a type for element np.float32
-        adj_matrix_cython (np.array(np.int64)): adjacency matrix, aimed to be compatible with cython precomputation code
-    """
-
-    if adj_GBP_file_path is not None and os.path.exists(adj_GBP_file_path):
-        if redo_save:
-            print(f"Regenerate the adj_GBP_file at : {adj_GBP_file_path}")
-            adj_train, _, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj_full, val_frac = val_frac, test_frac = test_frac)
-            adj_matrix_cython = graphsave(adj_train, data_name.lower(), adj_GBP_file_path, need_save = False, directed = directed)
-            np.savez(adj_GBP_file_path, adj_matrix_cython = adj_matrix_cython, 
-                    val_edges = val_edges, val_edges_false = val_edges_false, 
-                    test_edges = test_edges, test_edges_false = test_edges_false)
-            adj_train_file_path = os.path.join(os.path.dirname(adj_GBP_file_path), f'{data_name.lower()}_adj_train.npz')
-            sp.save_npz(adj_train_file_path, adj_train)
-        else:
-            print(f"Loading the pre-existent adj_GBP_file at : {adj_GBP_file_path}")
-            adj_train_file_path = os.path.join(os.path.dirname(adj_GBP_file_path), f'{data_name.lower()}_adj_train.npz')
-            with np.load(open(adj_GBP_file_path, 'rb'), allow_pickle=True) as data_input:
-                adj_matrix_cython = data_input['adj_matrix_cython']
-                val_edges = data_input['val_edges']
-                val_edges_false = data_input['val_edges_false']
-                test_edges = data_input['test_edges']
-                test_edges_false = data_input['test_edges_false']
-            adj_train = sp.load_npz(adj_train_file_path)
-    else:
-        print(f"Produce a brand new adj_GBP_file at : {adj_GBP_file_path}")
-        os.makedirs(os.path.dirname(adj_GBP_file_path), exist_ok=True)
-        adj_train, _, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj_full, val_frac = val_frac, test_frac = test_frac)
-        adj_matrix_cython = graphsave(adj_train, data_name.lower(), adj_GBP_file_path, need_save = False, directed = directed)
-        np.savez(adj_GBP_file_path, adj_matrix_cython = adj_matrix_cython, 
-                    val_edges = val_edges, val_edges_false = val_edges_false, 
-                    test_edges = test_edges, test_edges_false = test_edges_false)
-        adj_train_file_path = os.path.join(os.path.dirname(adj_GBP_file_path), f'{data_name.lower()}_adj_train.npz')
-        sp.save_npz(adj_train_file_path, adj_train)
-        
-    return np.ascontiguousarray(features, dtype = np.float32), adj_matrix_cython, val_edges, val_edges_false, test_edges, test_edges_false, adj_train
-
 
 def split_input_classification(data_name, features, node_split_file_path = None, redo_save = False, 
                                         val_frac = 0.05, test_frac = 0.1):
@@ -287,60 +194,7 @@ def sparse_to_tuple(sparse_mx):
     shape = sparse_mx.shape
     return coords, values, shape
 
-### ============================ compute the gbp smoothed features =========================
-def precompute_Cython_GBP_feat(data_name, num_proc, alpha, rmax, rrr, 
-                                rwnum = 0, directed = False, add_self_loop = False,
-                                rand_seed = 10, 
-                                feats = None, adj_matrix = None, data_path = None,  n_parts = 0):
-    """Geneate the GBP precomputation features
-        Args:
-                data_name ([type]): [description]
-                num_proc ([type]): [description]
-                alpha ([type]): [description]
-                rmax ([type]): [description]
-                rrr ([type]): [description]
-                rwnum (int, optional): [description]. Defaults to 0.
-                rand_seed (int, optional): [description]. Defaults to 10.
-                feats ([type], optional): [description]. Defaults to None.
-                adj_matrix ([type], optional): [description]. Defaults to None.
-                data_path ([type], optional): [description]. Defaults to None.
-                n_parts (int, optional): [description]. Defaults to 0.
 
-        Returns:
-                [ndarray(np.float32)]: [description]
-    """
-    a = Base(num_proc, alpha, rmax, rrr, rwnum,
-            data_name, directed = directed, add_self_loop = add_self_loop,
-            rand_seed = rand_seed, feats = feats, adj_matrix = adj_matrix)
-    
-    a.ppr_push()
-    return a.get_gbp_feat()
-
-
-### ============================ Prepare the input for cython-GBP computation  ===========
-
-def graphsave(adj, data_name, data_path, need_save = True, directed = False):
-    """
-        generate the edges for cython-GBP pre-computation, direct should be consistent with GBP_feat_precomputation
-        Save the adjacency matrix (scipy.sparse.csr.csr_matrix)  into coo format
-        Args:
-            adj (scipy.sparse.csr.csr_matrix): adjacency matrix 
-            data_path (str) : to be saved file location
-    """
-    adj = adj.tocoo()
-    
-    graph_adj = np.transpose(np.vstack([adj.row, adj.col]))
-    print(f'Adj matrix shape: {graph_adj.shape} !')
-    # if not directed, than we will extract a single-direct edges as input to the cython-GBP precomputation
-    if not directed:
-        graph_adj = graph_adj[graph_adj[:, 0] < graph_adj[:, 1]]
-        print(f'If undirected, adj matrix shape: {graph_adj.shape} !')
-        
-    graph_adj = np.ascontiguousarray(graph_adj, dtype=np.int64)  # all the graph node id should be long type
-    if need_save:
-        os.makedirs(os.path.dirname(data_path), exist_ok=True)
-        np.save(data_path, graph_adj)
-    return graph_adj
 
 
 ### ========================== SDCN input preprocessing ===============================
@@ -612,61 +466,7 @@ def parse_index_file(filename):
     return index
 
 
-### ========================== AGE wiki input preprocessing ===============================
-def load_AGE_wiki(data_path, data_name, add_self_loop = False):
-    f = open(os.path.join(data_path, data_name, 'graph.txt'),'r')
-    adj, xind, yind = [], [], []
-    for line in f.readlines():
-        line = line.split()
-        
-        xind.append(int(line[0]))
-        yind.append(int(line[1]))
-        adj.append([int(line[0]), int(line[1])])
-    f.close()
-    ##print(len(adj))
-
-    f = open(os.path.join(data_path, data_name, 'group.txt'),'r')
-    label = []
-    for line in f.readlines():
-        line = line.split()
-        label.append(int(line[1]))
-    f.close()
-
-    f = open(os.path.join(data_path, data_name, 'tfidf.txt'),'r')
-    fea_idx = []
-    fea = []
-    adj = np.array(adj)
-    adj = np.vstack((adj, adj[:,[1,0]]))
-    adj = np.unique(adj, axis=0)
-    
-    labelset = np.unique(label)
-    labeldict = dict(zip(labelset, range(len(labelset))))
-    label = np.array([labeldict[x] for x in label])
-    adj = sp.csr_matrix((np.ones(len(adj)), (adj[:,0], adj[:,1])), shape=(len(label), len(label)))
-
-    # eleminate all the self-loops if existent, and add it back
-    adj = adj - sp.dia_matrix((adj.diagonal()[np.newaxis, :], [0]), shape=adj.shape)
-    if add_self_loop:
-        adj = adj + sp.eye(adj.shape[0]) 
-    # adj.eliminate_zeros()
-
-    for line in f.readlines():
-        line = line.split()
-        fea_idx.append([int(line[0]), int(line[1])])
-        fea.append(float(line[2]))
-    f.close()
-
-    fea_idx = np.array(fea_idx)
-    features = sp.csr_matrix((fea, (fea_idx[:,0], fea_idx[:,1])), shape=(len(label), 4973)).toarray()
-    scaler = skp.MinMaxScaler()
-    #features = preprocess.normalize(features, norm='l2')
-    features = scaler.fit_transform(features)
-    # features = torch.FloatTensor(features)
-
-    return adj, features, label    
-
-
-### ========================== GraphSaint input preprocessing ===============================
+### ========================== GraphSaint input preprocessing for RwCL ===============================
 def load_graphsaint_data(prefix, datapath = './', standardize=True, add_self_loop = False):
     """
         prefix : should be the dataname: flickr, PPI_small, Reddit, Yelp, PPI_large
@@ -692,3 +492,7 @@ def load_graphsaint_data(prefix, datapath = './', standardize=True, add_self_loo
         feats = scaler.transform(feats)
     # -------------------------
     return adj_full, feats, labels
+
+
+### ========================== Meta framework data preprocessing ===============================
+

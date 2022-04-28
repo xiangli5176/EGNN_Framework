@@ -1,12 +1,12 @@
-from ...app_interface.GL_interface import GNN_framework
+from ...app_interface.Graph_Emb_interface import Graph_Emb
 from . import basic_exec_cluster, basic_exec_link, basic_exec_node_classification
 
 
-class RwCL_framework(GNN_framework):
+class RwCL_framework(Graph_Emb):
     """ Unified framework based on the RwCL training algorithm for multiple learning tasks.
 
     Args:
-        GNN_framework : interface
+        Graph_Emb : interface
     """
     def __init__(self, config):
         self.config = config
